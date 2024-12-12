@@ -218,10 +218,10 @@ export default function IvaBook() {
           fecha_hasta: endDate.format('YYYY-MM-DD'),
           empresa: selectedEmpresa
         }),
-        ClienteService.getIvaCompras({
+        ClienteService.getIvaComprasContabilium({
           fecha_desde: startDate.format('YYYY-MM-DD'),
           fecha_hasta: endDate.format('YYYY-MM-DD'),
-          empresa: selectedEmpresa
+          cuit: selectedEmpresa
         })
       ]);
       

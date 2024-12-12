@@ -43,11 +43,11 @@ const menuItems: MenuItem[] = [
     path: '/dashboard',
   },
   {
-    text: 'Ventas',
+    text: 'Libro IVA',
     icon: <ShoppingCartIcon />,
     subItems: [
-      { text: 'Libro IVA Ventas', path: '/ventas/libro-iva' },
-      { text: 'Total Libro IVA Ventas', path: '/ventas/total-libro-iva' },
+      { text: 'Libro IVA Gráfico', path: '/ventas/libro-iva' },
+      { text: 'Libro IVA Detalle', path: '/ventas/libro-iva-detalle' },
     ],
   },
   {
@@ -73,7 +73,7 @@ export default function Layout() {
   const handleMenuItemClick = (item: MenuItem) => {
     if (item.path) {
       navigate(item.path);
-    } else if (item.text === 'Ventas') {
+    } else if (item.text === 'Libro IVA') {
       setSalesOpen(!salesOpen);
     } else if (item.text === 'Compras') {
       setPurchasesOpen(!purchasesOpen);
@@ -177,7 +177,7 @@ export default function Layout() {
                 <ListItemText primary={item.text} />
                 {item.subItems && (
                   <>
-                    {(item.text === 'Ventas' && salesOpen) ||
+                    {(item.text === 'Libro IVA' && salesOpen) ||
                     (item.text === 'Compras' && purchasesOpen) ? (
                       <ExpandLess />
                     ) : (
@@ -189,7 +189,7 @@ export default function Layout() {
               {item.subItems && (
                 <Collapse
                   in={
-                    (item.text === 'Ventas' && salesOpen) ||
+                    (item.text === 'Libro IVA' && salesOpen) ||
                     (item.text === 'Compras' && purchasesOpen)
                   }
                   timeout="auto"

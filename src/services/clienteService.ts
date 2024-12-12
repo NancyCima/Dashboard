@@ -3,7 +3,7 @@ import api from './api';
 interface IvaParams {
   fecha_desde: string;
   fecha_hasta: string;
-  empresa?: string;
+  cuit?: string;
 }
 
 interface IvaResponse {
@@ -14,13 +14,25 @@ interface IvaResponse {
 
 interface Empresa {
   nombre: string;
+  cuit: string;
   proviene: string;
+}
+
+interface SubdiarioIvaParams {
+  fecha_desde: string;
+  fecha_hasta: string;
+  nombre_empresa: string;
 }
 
 class ClienteService {
   private readonly BASE_URL = '/cliente';
 
-  async getIvaCompras(params: IvaParams): Promise<IvaResponse> {
+  async getEmpresas(): Promise<Empresa[]> {
+    const response = await api.get(`${this.BASE_URL}/empresas`);
+    return response.data.data;
+  }
+
+  async getIvaComprasContabilium(params: IvaParams): Promise<IvaResponse> {
     try {
       const response = await api.post<IvaResponse>(
         `${this.BASE_URL}/iva-compras`,
@@ -33,11 +45,6 @@ class ClienteService {
     }
   }
 
-  async getEmpresas(): Promise<Empresa[]> {
-    const response = await api.get(`${this.BASE_URL}/empresas`);
-    return response.data.data;
-  }
-
   async getIvaVentasContabilium(params: IvaParams): Promise<IvaResponse> {
     try {
       const response = await api.post<IvaResponse>(
@@ -47,6 +54,32 @@ class ClienteService {
       return response.data;
     } catch (error) {
       console.error('Error al obtener IVA ventas:', error);
+      throw error;
+    }
+  }
+
+  async getSubdiarioIvaVentas(params: SubdiarioIvaParams): Promise<IvaResponse> {
+    try {
+      const response = await api.post<IvaResponse>(
+        `${this.BASE_URL}/empresa/subdiario-iva-ventas`,
+        params
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener subdiario IVA ventas:', error);
+      throw error;
+    }
+  }
+
+  async getSubdiarioIvaCompras(params: SubdiarioIvaParams): Promise<IvaResponse> {
+    try {
+      const response = await api.post<IvaResponse>(
+        `${this.BASE_URL}/empresa/subdiario-iva-compras`,
+        params
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener subdiario IVA compras:', error);
       throw error;
     }
   }

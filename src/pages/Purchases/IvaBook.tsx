@@ -34,7 +34,7 @@ export default function IvaBook() {
     setSuccess(false);
 
     try {
-      const response = await ClienteService.getIvaCompras({
+      const response = await ClienteService.getIvaComprasContabilium({
         fecha_desde: startDate.format('YYYY-MM-DD'),
         fecha_hasta: endDate.format('YYYY-MM-DD')
       });
