@@ -52,12 +52,6 @@ interface IvaMensualCompleto {
   total_iva_compras?: number;
 }
 
-interface IvaParams {
-  fecha_desde: string;
-  fecha_hasta: string;
-  cuit: string;
-}
-
 const agruparPorMes = (datos: IvaData[]): IvaMensual[] => {
   const mesesAgrupados = datos.reduce((acc: { [key: string]: number }, item) => {
     const fecha = item.fecha.substring(0, 7);
@@ -284,7 +278,7 @@ export default function IvaBook() {
     };
   }, [chartData, vistaIva]);
 
-  const handleExecute = async () => {
+  const handleSearch = async () => {
     if (!startDate || !endDate) {
       setError('Debe seleccionar ambas fechas');
       return;
@@ -445,10 +439,10 @@ export default function IvaBook() {
           </Grid>
 
           <Grid item xs={12} md={2} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Tooltip title="Ejecutar">
+            <Tooltip title="Buscar">
               <IconButton
                 color="primary"
-                onClick={handleExecute}
+                onClick={handleSearch}
                 disabled={loading}
                 sx={{ height: 'fit-content' }}
               >

@@ -13,6 +13,7 @@ import {
   ListItemIcon,
   ListItemText,
   Collapse,
+  Button,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
@@ -21,6 +22,11 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
+import LogoutIcon from '@mui/icons-material/Logout';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const drawerWidth = 240;
 
@@ -51,20 +57,23 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
-    text: 'Compras',
+    text: 'Retenciones',
     icon: <ReceiptIcon />,
-    subItems: [
-      { text: 'Libro IVA Compras', path: '/compras/libro-iva' },
-      { text: 'Total Libro IVA Compras', path: '/compras/total-libro-iva' },
-    ],
+    path: '/ventas/retenciones',
+  },
+  {
+    text: 'Percepciones',
+    icon: <ReceiptIcon />,
+    path: '/ventas/percepciones',
   },
 ];
 
-export default function Layout() {
-  const navigate = useNavigate();
-  const [open, setOpen] = useState(true);
+const Layout = () => {
+  const [open, setOpen] = useState(false);
   const [salesOpen, setSalesOpen] = useState(false);
-  const [purchasesOpen, setPurchasesOpen] = useState(false);
+  const navigate = useNavigate();
+  const { logout, user } = useAuth();
+  const theme = useTheme();
 
   const toggleDrawer = () => {
     setOpen(!open);
@@ -75,13 +84,16 @@ export default function Layout() {
       navigate(item.path);
     } else if (item.text === 'Libro IVA') {
       setSalesOpen(!salesOpen);
-    } else if (item.text === 'Compras') {
-      setPurchasesOpen(!purchasesOpen);
     }
   };
 
   const handleSubItemClick = (path: string) => {
     navigate(path);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   return (
@@ -119,9 +131,24 @@ export default function Layout() {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            Distrimar
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+            Distrimar DATA View
           </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <IconButton color="inherit" onClick={theme.toggleTheme}>
+              {theme.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+            </IconButton>
+            <Typography variant="body1">
+              {user?.username}
+            </Typography>
+            <Button
+              color="inherit"
+              onClick={handleLogout}
+              startIcon={<LogoutIcon />}
+            >
+              Cerrar Sesión
+            </Button>
+          </Box>
         </Toolbar>
       </AppBar>
       <Drawer
@@ -160,10 +187,29 @@ export default function Layout() {
           sx={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'flex-end',
+            justifyContent: 'space-between',
             px: [1],
           }}
         >
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            flex: 1,
+            justifyContent: open ? 'flex-start' : 'center',
+            overflow: 'hidden',
+            transition: 'all 0.2s ease-in-out'
+          }}>
+            <img
+              src={theme.mode === 'dark' ? "/src/assets/logo-blanco.png" : "/src/assets/logo.png"}
+              alt="Logo"
+              style={{
+                width: open ? '120px' : '40px',
+                height: 'auto',
+                transition: 'width 0.2s ease-in-out',
+                marginLeft: open ? '16px' : '0'
+              }}
+            />
+          </Box>
           <IconButton onClick={toggleDrawer}>
             <ChevronLeftIcon />
           </IconButton>
@@ -177,8 +223,7 @@ export default function Layout() {
                 <ListItemText primary={item.text} />
                 {item.subItems && (
                   <>
-                    {(item.text === 'Libro IVA' && salesOpen) ||
-                    (item.text === 'Compras' && purchasesOpen) ? (
+                    {(item.text === 'Libro IVA' && salesOpen) ? (
                       <ExpandLess />
                     ) : (
                       <ExpandMore />
@@ -189,8 +234,7 @@ export default function Layout() {
               {item.subItems && (
                 <Collapse
                   in={
-                    (item.text === 'Libro IVA' && salesOpen) ||
-                    (item.text === 'Compras' && purchasesOpen)
+                    (item.text === 'Libro IVA' && salesOpen)
                   }
                   timeout="auto"
                   unmountOnExit
@@ -225,4 +269,6 @@ export default function Layout() {
       </Box>
     </Box>
   );
-}
+};
+
+export default Layout;

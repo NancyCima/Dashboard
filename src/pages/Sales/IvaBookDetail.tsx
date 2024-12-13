@@ -52,14 +52,6 @@ interface Empresa {
 type PeriodoOption = 'mes_actual' | 'mes_anterior' | 'ultimos_3_meses' | 'ultimos_6_meses' | 'ultimo_año';
 type VistaIva = 'ventas' | 'compras';
 
-const periodoOptions = [
-  { value: 'mes_actual', label: 'Mes actual' },
-  { value: 'mes_anterior', label: 'Mes anterior' },
-  { value: 'ultimos_3_meses', label: 'Últimos 3 meses' },
-  { value: 'ultimos_6_meses', label: 'Últimos 6 meses' },
-  { value: 'ultimo_año', label: 'Último año' },
-];
-
 const formatCurrency = (value: any): string => {
   if (value === null || value === undefined) return '$0,00';
   // Asegurarse de que el valor sea un número
@@ -143,167 +135,52 @@ export default function IvaBookDetail() {
       return;
     }
 
+    const empresaSeleccionada = empresas.find(emp => emp.cuit === selectedEmpresa);
+    if (!empresaSeleccionada) {
+      setError('No se encontró la empresa seleccionada');
+      return;
+    }
+
     setLoading(true);
     setError(null);
+    setSuccess(false);
+
     const { fecha_desde, fecha_hasta } = calcularFechas(selectedPeriodo);
 
     try {
-      const empresa = empresas.find((e) => e.cuit === selectedEmpresa);
-      if (!empresa) {
-        setError('Empresa no encontrada');
-        return;
-      }
+      let responseData;
 
-      let responseData: Row[] = [];
-      const params = {
-        fecha_desde,
-        fecha_hasta,
-        cuit: selectedEmpresa,
-      };
-
-      if (empresa.proviene === 'CONTABILIUM') {
-        if (vistaIva === 'ventas') {
-          const response = await ClienteService.getIvaVentasContabilium(params);
-          console.log('Raw API Response:', response.data);
-          if (response?.data) {
-            responseData = response.data.map((item: any, index: number) => {
-              console.log('Processing item:', item);
-              const processed = {
-                ...item,
-                id: `ventas-${index}`,
-                neto: Number(item.neto) || 0,
-                total_iva: Number(item.total_iva) || 0,
-                total: Number(item.total) || 0
-              };
-              console.log('Valores originales:', {
-                neto: item.neto,
-                total_iva: item.total_iva,
-                total: item.total
-              });
-              console.log('Valores procesados:', {
-                neto: processed.neto,
-                total_iva: processed.total_iva,
-                total: processed.total
-              });
-              return processed;
-            });
-          }
-        } else if (vistaIva === 'compras') {
-          const response = await ClienteService.getIvaComprasContabilium(params);
-          console.log('Raw API Response:', response.data);
-          if (response?.data) {
-            responseData = response.data.map((item: any, index: number) => {
-              console.log('Processing item:', item);
-              const processed = {
-                ...item,
-                id: `compras-${index}`,
-                neto: Number(item.neto) || 0,
-                total_iva: Number(item.total_iva) || 0,
-                total: Number(item.total) || 0
-              };
-              console.log('Valores originales:', {
-                neto: item.neto,
-                total_iva: item.total_iva,
-                total: item.total
-              });
-              console.log('Valores procesados:', {
-                neto: processed.neto,
-                total_iva: processed.total_iva,
-                total: processed.total
-              });
-              return processed;
-            });
-          }
-        }
-      } else {
-        const vsParams = {
+      if (empresaSeleccionada.proviene === 'Contabilium') {
+        const params = {
           fecha_desde,
           fecha_hasta,
-          nombre_empresa: empresa.nombre,
+          cuit: empresaSeleccionada.cuit
         };
-        
+
         if (vistaIva === 'ventas') {
-          const response = await ClienteService.getSubdiarioIvaVentas(vsParams);
-          console.log('Raw API Response:', response.data);
-          if (response?.data) {
-            // Convertir los valores numéricos explícitamente
-            responseData = response.data.map((item: any, index: number) => {
-              const mappedItem = {
-                ...item,
-                id: `ventas-vs-${index}`,
-                neto: parseFloat(item.neto?.toString() || '0'),
-                total_iva: parseFloat(item.total_iva?.toString() || '0'),
-                total: parseFloat(item.total?.toString() || '0')
-              };
-              console.log('Mapped item:', {
-                original: {
-                  neto: item.neto,
-                  total_iva: item.total_iva,
-                  total: item.total,
-                  types: {
-                    neto: typeof item.neto,
-                    total_iva: typeof item.total_iva,
-                    total: typeof item.total
-                  }
-                },
-                mapped: {
-                  neto: mappedItem.neto,
-                  total_iva: mappedItem.total_iva,
-                  total: mappedItem.total,
-                  types: {
-                    neto: typeof mappedItem.neto,
-                    total_iva: typeof mappedItem.total_iva,
-                    total: typeof mappedItem.total
-                  }
-                }
-              });
-              return mappedItem;
-            });
-          }
-        } else if (vistaIva === 'compras') {
-          const response = await ClienteService.getSubdiarioIvaCompras(vsParams);
-          console.log('Raw API Response:', response.data);
-          if (response?.data) {
-            // Convertir los valores numéricos explícitamente
-            responseData = response.data.map((item: any, index: number) => {
-              const mappedItem = {
-                ...item,
-                id: `compras-vs-${index}`,
-                neto: parseFloat(item.neto?.toString() || '0'),
-                total_iva: parseFloat(item.total_iva?.toString() || '0'),
-                total: parseFloat(item.total?.toString() || '0')
-              };
-              console.log('Mapped item:', {
-                original: {
-                  neto: item.neto,
-                  total_iva: item.total_iva,
-                  total: item.total,
-                  types: {
-                    neto: typeof item.neto,
-                    total_iva: typeof item.total_iva,
-                    total: typeof item.total
-                  }
-                },
-                mapped: {
-                  neto: mappedItem.neto,
-                  total_iva: mappedItem.total_iva,
-                  total: mappedItem.total,
-                  types: {
-                    neto: typeof mappedItem.neto,
-                    total_iva: typeof mappedItem.total_iva,
-                    total: typeof mappedItem.total
-                  }
-                }
-              });
-              return mappedItem;
-            });
-          }
+          const response = await ClienteService.getIvaVentasContabilium(params);
+          responseData = response.data;
+        } else {
+          const response = await ClienteService.getIvaComprasContabilium(params);
+          responseData = response.data;
+        }
+      } else {
+        const params = {
+          fecha_desde,
+          fecha_hasta,
+          nombre_empresa: empresaSeleccionada.nombre
+        };
+
+        if (vistaIva === 'ventas') {
+          const response = await ClienteService.getSubdiarioIvaVentas(params);
+          responseData = response.data;
+        } else {
+          const response = await ClienteService.getSubdiarioIvaCompras(params);
+          responseData = response.data;
         }
       }
 
-      console.log('Final responseData:', responseData);
-      // Verificar la estructura de los datos
-      if (responseData.length > 0) {
+      if (responseData && responseData.length > 0) {
         console.log('Primera fila:', {
           datos: responseData[0],
           campos: Object.keys(responseData[0]),
@@ -314,8 +191,9 @@ export default function IvaBookDetail() {
           }
         });
       }
-      setRows(responseData);
-      if (responseData.length === 0) {
+      
+      setRows(responseData || []);
+      if (!responseData || responseData.length === 0) {
         setError('No se encontraron datos para los criterios seleccionados');
       } else {
         setSuccess(true);
@@ -329,7 +207,7 @@ export default function IvaBookDetail() {
     }
   };
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);
   };
 

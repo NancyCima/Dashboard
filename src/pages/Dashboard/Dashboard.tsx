@@ -1,14 +1,25 @@
-import { Grid, Paper, Typography } from '@mui/material';
+import { Grid, Paper, Typography, IconButton, Tooltip, Box } from '@mui/material';
 import Title from '@/components/Title/Title';
 import * as am5 from '@amcharts/amcharts5';
 import * as am5xy from '@amcharts/amcharts5/xy';
 import * as am5percent from '@amcharts/amcharts5/percent';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 import { useLayoutEffect, useRef } from 'react';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import * as am5exporting from "@amcharts/amcharts5/plugins/exporting";
 
 export const Dashboard = () => {
   const barChartRef = useRef<am5.Root | null>(null);
   const pieChartRef = useRef<am5.Root | null>(null);
+  const barExportingRef = useRef<am5exporting.Exporting | null>(null);
+  const pieExportingRef = useRef<am5exporting.Exporting | null>(null);
+
+  const exportChart = (chartId: string) => {
+    const exporting = chartId === 'barChart' ? barExportingRef.current : pieExportingRef.current;
+    if (exporting) {
+      exporting.export("png");
+    }
+  };
 
   useLayoutEffect(() => {
     // Bar Chart
@@ -61,6 +72,12 @@ export const Dashboard = () => {
     );
     series.data.setAll(data);
 
+    // Add export menu
+    barExportingRef.current = am5exporting.Exporting.new(barRoot, {
+      menu: am5exporting.ExportingMenu.new(barRoot, {}),
+      filePrefix: "ventas-mensuales"
+    });
+
     // Pie Chart
     const pieRoot = am5.Root.new('pieChart');
     pieChartRef.current = pieRoot;
@@ -89,6 +106,12 @@ export const Dashboard = () => {
     ];
 
     pieSeries.data.setAll(pieData);
+
+    // Add export menu
+    pieExportingRef.current = am5exporting.Exporting.new(pieRoot, {
+      menu: am5exporting.ExportingMenu.new(pieRoot, {}),
+      filePrefix: "distribucion-productos"
+    });
 
     return () => {
       barRoot.dispose();
@@ -122,7 +145,14 @@ export const Dashboard = () => {
             height: 500,
           }}
         >
-          <Title>Ventas Mensuales</Title>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Title>Ventas Mensuales</Title>
+            <Tooltip title="Exportar gráfico">
+              <IconButton onClick={() => exportChart('barChart')} size="small">
+                <FileDownloadIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
           <div id="barChart" style={{ width: '100%', height: '100%' }}></div>
         </Paper>
       </Grid>
@@ -135,7 +165,14 @@ export const Dashboard = () => {
             height: 500,
           }}
         >
-          <Title>Distribución de Productos</Title>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Title>Distribución de Productos</Title>
+            <Tooltip title="Exportar gráfico">
+              <IconButton onClick={() => exportChart('pieChart')} size="small">
+                <FileDownloadIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
           <div id="pieChart" style={{ width: '100%', height: '100%' }}></div>
         </Paper>
       </Grid>

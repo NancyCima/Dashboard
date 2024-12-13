@@ -17,12 +17,14 @@ import * as am5 from '@amcharts/amcharts5';
 import * as am5xy from '@amcharts/amcharts5/xy';
 import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 import Title from '@/components/Title/Title';
 import ClienteService from '@/services/clienteService';
+import * as am5exporting from "@amcharts/amcharts5/plugins/exporting";
 
 interface IvaData {
   fecha: string;
@@ -79,12 +81,19 @@ export default function IvaBook() {
   const [chartData, setChartData] = useState<IvaMensual[]>([]);
   const [viewType, setViewType] = useState<ViewType>('ambos');
   const chartRef = useRef<am5.Root | null>(null);
+  const exportingRef = useRef<am5exporting.Exporting | null>(null);
+
+  const exportChart = () => {
+    if (exportingRef.current) {
+      exportingRef.current.export("png");
+    }
+  };
 
   useEffect(() => {
     const fetchEmpresas = async () => {
       try {
         const response = await ClienteService.getEmpresas();
-        setEmpresas(response.data);
+        setEmpresas(response);
       } catch (error) {
         console.error('Error al obtener empresas:', error);
       }
@@ -95,19 +104,15 @@ export default function IvaBook() {
 
   useEffect(() => {
     if (chartData.length > 0) {
-      // Dispose of previous chart if it exists
       if (chartRef.current) {
         chartRef.current.dispose();
       }
 
-      // Create root element
       const root = am5.Root.new("chartdiv");
       chartRef.current = root;
 
-      // Set themes
       root.setThemes([am5themes_Animated.new(root)]);
 
-      // Create chart
       const chart = root.container.children.push(
         am5xy.XYChart.new(root, {
           panX: true,
@@ -122,6 +127,12 @@ export default function IvaBook() {
       chart.set("cursor", am5xy.XYCursor.new(root, {
         behavior: "none"
       }));
+
+      // Add export menu
+      exportingRef.current = am5exporting.Exporting.new(root, {
+        menu: am5exporting.ExportingMenu.new(root, {}),
+        filePrefix: "iva-chart"
+      });
 
       // Create axes
       const xAxis = chart.xAxes.push(
@@ -213,7 +224,7 @@ export default function IvaBook() {
 
     try {
       const [ventasResponse, comprasResponse] = await Promise.all([
-        ClienteService.getIvaVentas({
+        ClienteService.getIvaVentasContabilium({
           fecha_desde: startDate.format('YYYY-MM-DD'),
           fecha_hasta: endDate.format('YYYY-MM-DD'),
           empresa: selectedEmpresa
@@ -224,15 +235,15 @@ export default function IvaBook() {
           cuit: selectedEmpresa
         })
       ]);
-      
+
       const datosAgrupados = agruparPorMes(
         ventasResponse.data,
         comprasResponse.data
       );
-      
+
       setChartData(datosAgrupados);
       setSuccess(true);
-      
+
     } catch (error) {
       setError('Error al ejecutar la consulta. Por favor, intente nuevamente.');
       console.error('Error:', error);
@@ -252,6 +263,16 @@ export default function IvaBook() {
   return (
     <Box sx={{ p: 2 }}>
       <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Title>Libro IVA</Title>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Tooltip title="Exportar gráfico">
+              <IconButton onClick={exportChart} size="small">
+                <FileDownloadIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </Box>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={3}>
             <FormControl fullWidth>
@@ -305,11 +326,11 @@ export default function IvaBook() {
           </Grid>
           <Grid item xs="auto">
             <Tooltip title="Ejecutar">
-              <IconButton 
-                color="primary" 
+              <IconButton
+                color="primary"
                 onClick={handleExecute}
                 disabled={loading}
-                sx={{ 
+                sx={{
                   backgroundColor: (theme) => theme.palette.primary.main,
                   color: 'white',
                   '&:hover': {
@@ -333,9 +354,9 @@ export default function IvaBook() {
           <div id="chartdiv" style={{ width: '100%', height: '400px' }}></div>
         </Paper>
       )}
-      <Snackbar 
-        open={!!error} 
-        autoHideDuration={6000} 
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
         onClose={handleCloseError}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
@@ -343,9 +364,9 @@ export default function IvaBook() {
           {error}
         </Alert>
       </Snackbar>
-      <Snackbar 
-        open={success} 
-        autoHideDuration={3000} 
+      <Snackbar
+        open={success}
+        autoHideDuration={3000}
         onClose={handleCloseSuccess}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >

@@ -4,6 +4,13 @@ interface IvaParams {
   fecha_desde: string;
   fecha_hasta: string;
   cuit?: string;
+  empresa?: string;
+}
+
+interface RetencionesPercepcionesParams {
+  fecha_desde: string;
+  fecha_hasta: string;
+  cuit?: string;
 }
 
 interface IvaResponse {
@@ -80,6 +87,32 @@ class ClienteService {
       return response.data;
     } catch (error) {
       console.error('Error al obtener subdiario IVA compras:', error);
+      throw error;
+    }
+  }
+
+  async getRetenciones(params: RetencionesPercepcionesParams): Promise<IvaResponse> {
+    try {
+      const response = await api.post<IvaResponse>(
+        `${this.BASE_URL}/iva-retenciones`,
+        params
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener retenciones:', error);
+      throw error;
+    }
+  }
+
+  async getPerceptions(params: RetencionesPercepcionesParams): Promise<IvaResponse> {
+    try {
+      const response = await api.post<IvaResponse>(
+        `${this.BASE_URL}/iva-percepciones`,
+        params
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener percepciones:', error);
       throw error;
     }
   }

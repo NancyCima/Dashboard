@@ -3,28 +3,38 @@ import Layout from '@/components/Layout/Layout';
 import { Dashboard } from '@/pages/Dashboard/Dashboard';
 import IvaBook from '@/pages/Sales/IvaBook';
 import IvaBookDetail from '@/pages/Sales/IvaBookDetail';
-import { useAuthStore } from '@/stores/authStore';
+import Retenciones from '@/pages/Retentions/Retenciones';
+import Percepciones from '@/pages/Perceptions/Percepciones';
+import { Login } from '@/pages/Login/Login';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 function App() {
-  const isAuth = useAuthStore((state) => state.user !== null);
-
-  if (!isAuth) {
-    return <Navigate to="/login" />;
-  }
-
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="ventas">
-            <Route path="libro-iva" element={<IvaBook />} />
-            <Route path="libro-iva-detalle" element={<IvaBookDetail />} />
-          </Route>
-        </Route>
-      </Routes>
-    </Router>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }>
+              <Route index element={<Navigate to="/dashboard" replace />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="ventas">
+                <Route path="libro-iva" element={<IvaBook />} />
+                <Route path="libro-iva-detalle" element={<IvaBookDetail />} />
+                <Route path="retenciones" element={<Retenciones />} />
+                <Route path="percepciones" element={<Percepciones />} />
+              </Route>
+            </Route>
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
