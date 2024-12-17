@@ -16,9 +16,6 @@ import {
   FormControlLabel,
   Radio,
 } from '@mui/material';
-import * as am5 from '@amcharts/amcharts5';
-import * as am5xy from '@amcharts/amcharts5/xy';
-import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -27,6 +24,8 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/es';
 import Title from '@/components/Title/Title';
 import ClienteService from '@/services/clienteService';
+import { BarChart, SeriesConfig } from '@/components/charts/BarChart';
+import { useTheme } from '@/contexts/ThemeContext';
 
 dayjs.locale('es');
 
@@ -92,6 +91,38 @@ export default function IvaBook() {
   const [success, setSuccess] = useState(false);
   const [chartData, setChartData] = useState<IvaMensualCompleto[]>([]);
   const [vistaIva, setVistaIva] = useState<'ventas' | 'compras' | 'ambos'>('ventas');
+  const { mode } = useTheme();
+
+  // Configuración de las series del gráfico
+  const getChartSeries = (): SeriesConfig[] => {
+    switch (vistaIva) {
+      case 'ambos':
+        return [
+          {
+            name: 'Ventas',
+            valueYField: 'total_iva_ventas',
+            color: '#67B7DC'
+          },
+          {
+            name: 'Compras',
+            valueYField: 'total_iva_compras',
+            color: '#6794DC'
+          }
+        ];
+      case 'ventas':
+        return [{
+          name: 'Ventas',
+          valueYField: 'total_iva_ventas',
+          color: '#67B7DC'
+        }];
+      case 'compras':
+        return [{
+          name: 'Compras',
+          valueYField: 'total_iva_compras',
+          color: '#6794DC'
+        }];
+    }
+  };
 
   useEffect(() => {
     const fetchEmpresas = async () => {
@@ -113,170 +144,6 @@ export default function IvaBook() {
 
     fetchEmpresas();
   }, []);
-
-  useEffect(() => {
-    let root: am5.Root;
-
-    if (chartData.length > 0) {
-      root = am5.Root.new("chartdiv");
-      root.setThemes([am5themes_Animated.new(root)]);
-
-      const chart = root.container.children.push(
-        am5xy.XYChart.new(root, {
-          panY: false,
-          layout: root.verticalLayout
-        })
-      );
-
-      const xAxis = chart.xAxes.push(
-        am5xy.CategoryAxis.new(root, {
-          categoryField: "fecha",
-          renderer: am5xy.AxisRendererX.new(root, {
-            minGridDistance: 30
-          })
-        })
-      );
-
-      const yAxis = chart.yAxes.push(
-        am5xy.ValueAxis.new(root, {
-          renderer: am5xy.AxisRendererY.new(root, {})
-        })
-      );
-
-      if (vistaIva === 'ambos') {
-        const ventasSeries = chart.series.push(
-          am5xy.ColumnSeries.new(root, {
-            name: "Ventas",
-            xAxis: xAxis,
-            yAxis: yAxis,
-            valueYField: "total_iva_ventas",
-            categoryXField: "fecha",
-            tooltip: am5.Tooltip.new(root, {
-              pointerOrientation: "horizontal",
-              labelText: "Ventas: ${valueY}",
-              getFillFromSprite: false,
-              background: am5.Rectangle.new(root, {
-                fill: am5.color("#f3f3f3"),
-                fillOpacity: 0.9
-              })
-            })
-          })
-        );
-
-        const comprasSeries = chart.series.push(
-          am5xy.ColumnSeries.new(root, {
-            name: "Compras",
-            xAxis: xAxis,
-            yAxis: yAxis,
-            valueYField: "total_iva_compras",
-            categoryXField: "fecha",
-            tooltip: am5.Tooltip.new(root, {
-              pointerOrientation: "horizontal",
-              labelText: "Compras: ${valueY}",
-              getFillFromSprite: false,
-              background: am5.Rectangle.new(root, {
-                fill: am5.color("#f3f3f3"),
-                fillOpacity: 0.9
-              })
-            })
-          })
-        );
-
-        ventasSeries.columns.template.setAll({
-          cornerRadiusTL: 3,
-          cornerRadiusTR: 3,
-          strokeOpacity: 0,
-          fill: am5.color(0x67B7DC),
-          tooltipY: 0,
-          tooltipText: "Ventas: {valueY}",
-          interactive: true
-        });
-
-        comprasSeries.columns.template.setAll({
-          cornerRadiusTL: 3,
-          cornerRadiusTR: 3,
-          strokeOpacity: 0,
-          fill: am5.color(0x6794DC),
-          tooltipY: 0,
-          tooltipText: "Compras: {valueY}",
-          interactive: true
-        });
-
-        ventasSeries.columns.template.events.on("pointerover", function(ev) {
-          const tooltip = ev.target.getTooltip();
-          if (tooltip) {
-            tooltip.show();
-          }
-        });
-
-        comprasSeries.columns.template.events.on("pointerover", function(ev) {
-          const tooltip = ev.target.getTooltip();
-          if (tooltip) {
-            tooltip.show();
-          }
-        });
-
-        const legend = chart.children.push(am5.Legend.new(root, {}));
-        legend.data.setAll(chart.series.values);
-
-        ventasSeries.data.setAll(chartData);
-        comprasSeries.data.setAll(chartData);
-        xAxis.data.setAll(chartData);
-
-        ventasSeries.appear(1000);
-        comprasSeries.appear(1000);
-      } else {
-        const series = chart.series.push(
-          am5xy.ColumnSeries.new(root, {
-            name: vistaIva === 'ventas' ? "Ventas" : "Compras",
-            xAxis: xAxis,
-            yAxis: yAxis,
-            valueYField: vistaIva === 'ventas' ? "total_iva_ventas" : "total_iva_compras",
-            categoryXField: "fecha",
-            tooltip: am5.Tooltip.new(root, {
-              pointerOrientation: "horizontal",
-              labelText: "${valueY}",
-              getFillFromSprite: false,
-              background: am5.Rectangle.new(root, {
-                fill: am5.color("#f3f3f3"),
-                fillOpacity: 0.9
-              })
-            })
-          })
-        );
-
-        series.columns.template.setAll({
-          cornerRadiusTL: 3,
-          cornerRadiusTR: 3,
-          strokeOpacity: 0,
-          fill: am5.color(vistaIva === 'ventas' ? 0x67B7DC : 0x6794DC),
-          tooltipY: 0,
-          tooltipText: "{valueY}",
-          interactive: true
-        });
-
-        series.columns.template.events.on("pointerover", function(ev) {
-          const tooltip = ev.target.getTooltip();
-          if (tooltip) {
-            tooltip.show();
-          }
-        });
-
-        series.data.setAll(chartData);
-        xAxis.data.setAll(chartData);
-
-        series.appear(1000);
-      }
-
-      chart.appear(1000, 100);
-    }
-
-    return () => {
-      if (root) {
-        root.dispose();
-      }
-    };
-  }, [chartData, vistaIva]);
 
   const handleSearch = async () => {
     if (!startDate || !endDate) {
@@ -312,13 +179,11 @@ export default function IvaBook() {
           const response = await ClienteService.getIvaVentasContabilium(ivaParams);
           const datosAgrupados = agruparPorMes(response.data);
           setChartData(datosAgrupados.map(d => ({ fecha: d.fecha, total_iva_ventas: d.total_iva })));
-        } 
-        else if (vistaIva === 'compras') {
+        } else if (vistaIva === 'compras') {
           const response = await ClienteService.getIvaComprasContabilium(ivaParams);
           const datosAgrupados = agruparPorMes(response.data);
           setChartData(datosAgrupados.map(d => ({ fecha: d.fecha, total_iva_compras: d.total_iva })));
-        }
-        else {
+        } else {
           const [ventasResponse, comprasResponse] = await Promise.all([
             ClienteService.getIvaVentasContabilium(ivaParams),
             ClienteService.getIvaComprasContabilium(ivaParams)
@@ -329,21 +194,18 @@ export default function IvaBook() {
           const datosCombinados = combinarDatosIva(ventasData, comprasData);
           setChartData(datosCombinados);
         }
-      } 
-      else if (empresaSeleccionada.proviene === 'Sistema VS') {
+      } else if (empresaSeleccionada.proviene === 'Sistema VS') {
         const subdiarioParams = { ...params, nombre_empresa: empresaSeleccionada.nombre };
 
         if (vistaIva === 'ventas') {
           const response = await ClienteService.getSubdiarioIvaVentas(subdiarioParams);
           const datosAgrupados = agruparPorMes(response.data);
           setChartData(datosAgrupados.map(d => ({ fecha: d.fecha, total_iva_ventas: d.total_iva })));
-        } 
-        else if (vistaIva === 'compras') {
+        } else if (vistaIva === 'compras') {
           const response = await ClienteService.getSubdiarioIvaCompras(subdiarioParams);
           const datosAgrupados = agruparPorMes(response.data);
           setChartData(datosAgrupados.map(d => ({ fecha: d.fecha, total_iva_compras: d.total_iva })));
-        }
-        else {
+        } else {
           const [ventasResponse, comprasResponse] = await Promise.all([
             ClienteService.getSubdiarioIvaVentas(subdiarioParams),
             ClienteService.getSubdiarioIvaCompras(subdiarioParams)
@@ -453,9 +315,26 @@ export default function IvaBook() {
         </Grid>
       </Paper>
       {chartData.length > 0 && (
-        <Paper sx={{ p: 2, mt: 2 }}>
-          <Title>Gráfico de IVA por Mes</Title>
-          <div id="chartdiv" style={{ width: '100%', height: '400px' }}></div>
+        <Paper
+          sx={{
+            p: 2,
+            mt: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            height: 'calc(100vh - 250px)'
+          }}
+        >
+          <Title sx={{ marginBottom: '20px' }}>Gráfico de IVA por Mes</Title>
+          <Box sx={{ flexGrow: 1, width: '100%', minHeight: 0, paddingTop: '10px' }}>
+            <BarChart
+              data={chartData}
+              series={getChartSeries()}
+              categoryXField="fecha"
+              isDarkMode={mode === 'dark'}
+              enableExport={true}
+              height="100%"
+            />
+          </Box>
         </Paper>
       )}
       <Snackbar open={!!error} autoHideDuration={6000} onClose={handleCloseError}>
@@ -463,9 +342,9 @@ export default function IvaBook() {
           {error}
         </Alert>
       </Snackbar>
-      <Snackbar 
-        open={success} 
-        autoHideDuration={3000} 
+      <Snackbar
+        open={success}
+        autoHideDuration={3000}
         onClose={handleCloseSuccess}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >

@@ -8,23 +8,20 @@ import {
   Select,
   MenuItem,
   Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
   Alert,
   CircularProgress,
+  Tooltip,
+  IconButton
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import SearchIcon from '@mui/icons-material/Search';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import Title from '@/components/Title/Title';
+import { DataTable } from '@/components/tables/DataTable';
 import ClienteService from '@/services/clienteService';
 import { Dayjs } from 'dayjs';
+import { percepcionesColumns } from './config/tableColumns';
 
 interface Row {
   id: string | number;
@@ -43,21 +40,11 @@ interface Empresa {
   proviene: string;
 }
 
-const formatCurrency = (value: any): string => {
-  if (value === null || value === undefined) return '$0,00';
-  const numericValue = typeof value === 'string' ? parseFloat(value) : value;
-  if (isNaN(numericValue)) return '$0,00';
-  return new Intl.NumberFormat('es-AR', {
-    style: 'currency',
-    currency: 'ARS',
-  }).format(numericValue);
-};
-
 const Percepciones = () => {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [selectedEmpresa, setSelectedEmpresa] = useState<string>('');
-  const [startDate, setStartDate] = useState< Dayjs | null>(null);
-  const [endDate, setEndDate] = useState< Dayjs | null>(null);
+  const [startDate, setStartDate] = useState<Dayjs | null>(null);
+  const [endDate, setEndDate] = useState<Dayjs | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -101,7 +88,6 @@ const Percepciones = () => {
     setSuccess(false);
 
     try {
-      let responseData;
       const params = {
         fecha_desde: startDate.format('YYYY-MM-DD'),
         fecha_hasta: endDate.format('YYYY-MM-DD'),
@@ -109,9 +95,15 @@ const Percepciones = () => {
       };
 
       const response = await ClienteService.getPerceptions(params);
-      responseData = response.data;
+      const responseData = response.data;
 
-      setRows(responseData || []);
+      // Asegurarse de que cada fila tenga un ID único
+      const rowsWithIds = responseData.map((row: Row, index: number) => ({
+        ...row,
+        id: row.id || `perception-${index}`
+      }));
+
+      setRows(rowsWithIds);
       if (!responseData || responseData.length === 0) {
         setError('No se encontraron datos para los criterios seleccionados');
       } else {
@@ -126,7 +118,7 @@ const Percepciones = () => {
     }
   };
 
-  const handleChangePage = (_event: unknown, newPage: number) => {
+  const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);
   };
 
@@ -185,16 +177,16 @@ const Percepciones = () => {
               />
             </LocalizationProvider>
           </Grid>
-          <Grid item xs={12} sm={2}>
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={handleSearch}
-              startIcon={<SearchIcon />}
-              disabled={loading}
-            >
-              {loading ? <CircularProgress size={24} /> : 'Buscar'}
-            </Button>
+          <Grid item xs={12} sm={2} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Tooltip title="Buscar">
+              <IconButton
+                onClick={handleSearch}
+                disabled={loading}
+                sx={{ height: 'fit-content' }}
+              >
+                {loading ? <CircularProgress size={24} /> : <PlayArrowIcon color="primary" />}
+              </IconButton>
+            </Tooltip>
           </Grid>
         </Grid>
       </Paper>
@@ -206,47 +198,20 @@ const Percepciones = () => {
       )}
 
       {success && (
-        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-          <TableContainer>
-            <Table stickyHeader aria-label="sticky table">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Fecha</TableCell>
-                  <TableCell>Comprobante</TableCell>
-                  <TableCell>Condición IVA</TableCell>
-                  <TableCell>Razón Social</TableCell>
-                  <TableCell>CUIT</TableCell>
-                  <TableCell align="right">Importe</TableCell>
-                  <TableCell align="right">Importe Total</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((row) => (
-                    <TableRow hover key={row.id}>
-                      <TableCell>{row.fecha}</TableCell>
-                      <TableCell>{row.comprobante}</TableCell>
-                      <TableCell>{row.condicion_iva}</TableCell>
-                      <TableCell>{row.razon_social}</TableCell>
-                      <TableCell>{row.cuit}</TableCell>
-                      <TableCell align="right">{formatCurrency(row.importe)}</TableCell>
-                      <TableCell align="right">{formatCurrency(row.importe_total)}</TableCell>
-                    </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <TablePagination
-            rowsPerPageOptions={[10, 25, 100]}
-            component="div"
-            count={rows.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
-        </Paper>
+        <Alert severity="success" sx={{ mb: 2 }}>
+          Datos cargados exitosamente
+        </Alert>
+      )}
+
+      {rows.length > 0 && (
+        <DataTable
+          columns={percepcionesColumns}
+          rows={rows}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
       )}
     </Box>
   );

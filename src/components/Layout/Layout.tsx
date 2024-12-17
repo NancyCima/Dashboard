@@ -69,7 +69,7 @@ const menuItems: MenuItem[] = [
 ];
 
 const Layout = () => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [salesOpen, setSalesOpen] = useState(false);
   const navigate = useNavigate();
   const { logout, user } = useAuth();
@@ -101,6 +101,10 @@ const Layout = () => {
       <AppBar
         position="fixed"
         sx={{
+          backgroundColor: theme.mode === 'dark' ? "black" : 'white',
+          color: theme.mode === 'dark' ? '#FFFFFF' : 'text.primary',
+          borderBottom: theme.mode === 'dark' ? '2px solid ##424242' : '2px solid #2461B3',
+          boxShadow: 'none',
           zIndex: (theme) => theme.zIndex.drawer + 1,
           transition: (theme) =>
             theme.transitions.create(['width', 'margin'], {
@@ -131,9 +135,7 @@ const Layout = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Distrimar DATA View
-          </Typography>
+          <Box sx={{ flexGrow: 1 }} />
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <IconButton color="inherit" onClick={theme.toggleTheme}>
               {theme.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
@@ -171,9 +173,8 @@ const Layout = () => {
             },
           }),
           ...(!open && {
-            width: (theme) => theme.spacing(7),
             '& .MuiDrawer-paper': {
-              width: (theme) => theme.spacing(7),
+              width: '57px',
               transition: (theme) =>
                 theme.transitions.create('width', {
                   easing: theme.transitions.easing.sharp,
@@ -183,37 +184,74 @@ const Layout = () => {
           }),
         }}
       >
-        <Toolbar
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            px: [1],
-          }}
-        >
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center',
-            flex: 1,
-            justifyContent: open ? 'flex-start' : 'center',
-            overflow: 'hidden',
-            transition: 'all 0.2s ease-in-out'
-          }}>
-            <img
-              src={theme.mode === 'dark' ? "/src/assets/logo-blanco.png" : "/src/assets/logo.png"}
-              alt="Logo"
-              style={{
-                width: open ? '120px' : '40px',
-                height: 'auto',
-                transition: 'width 0.2s ease-in-out',
-                marginLeft: open ? '16px' : '0'
-              }}
-            />
-          </Box>
-          <IconButton onClick={toggleDrawer}>
+        <Box sx={{
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          pb: 2,
+          pt: 1,
+          px: 2,
+          backgroundColor: theme.mode === 'dark' ? '#424242' : 'white',
+          position: 'relative'
+        }}>
+          <Typography
+            variant="body2"
+            sx={{
+              position: 'absolute',
+              top: '0px',
+              opacity: open ? 1 : 0,
+              transition: 'opacity 0.2s ease-in-out',
+              fontWeight: 'bold',
+              color: '#bfbfbf',
+              zIndex: 1,
+              fontSize: '14px',
+              backgroundColor: theme.mode === 'dark' ? "#363535" : "#f5f5f5",
+              padding: '4px 8px',
+              borderRadius: '4px',
+              width: '100%',
+              textAlign: 'center'
+            }}
+          >
+            FE: 1.1.12v | BE: 1.1.19v
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{
+              position: 'absolute',
+              top: '132px',
+              opacity: open ? 1 : 0,
+              transition: 'opacity 0.2s ease-in-out',
+              fontWeight: 'bold',
+              color: 'text.primary',
+              zIndex: 1,
+              fontSize: '14px',
+              backgroundColor: theme.mode === 'dark' ? "#363535" : "#f5f5f5",
+              padding: '4px 8px',
+              borderRadius: '4px'
+            }}
+          >
+            Alemar Data Analytics
+          </Typography>
+          <img
+            src={theme.mode === 'dark' ? "/assets/logos/asap_blanco.png" : "/assets/logos/asap_azul.png"}
+            alt="ASAP Logo"
+            style={{
+              width: open ? '80%' : '40px',
+              height: 'auto',
+              transition: 'width 0.2s ease-in-out'
+            }}
+          />
+        </Box>
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          p: 1
+        }}>
+          <IconButton onClick={toggleDrawer} size="small">
             <ChevronLeftIcon />
           </IconButton>
-        </Toolbar>
+        </Box>
         <Divider />
         <List>
           {menuItems.map((item) => (

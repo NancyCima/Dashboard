@@ -25,6 +25,7 @@ import dayjs from 'dayjs';
 import Title from '@/components/Title/Title';
 import ClienteService from '@/services/clienteService';
 import * as am5exporting from "@amcharts/amcharts5/plugins/exporting";
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface IvaData {
   fecha: string;
@@ -82,6 +83,7 @@ export default function IvaBook() {
   const [viewType, setViewType] = useState<ViewType>('ambos');
   const chartRef = useRef<am5.Root | null>(null);
   const exportingRef = useRef<am5exporting.Exporting | null>(null);
+  const { mode } = useTheme();
 
   const exportChart = () => {
     if (exportingRef.current) {
@@ -113,6 +115,12 @@ export default function IvaBook() {
 
       root.setThemes([am5themes_Animated.new(root)]);
 
+      // Set dark mode colors for root
+      if (mode === 'dark') {
+        root.interfaceColors.set("grid", am5.color("#444444"));
+        root.interfaceColors.set("text", am5.color("#ffffff"));
+      }
+
       const chart = root.container.children.push(
         am5xy.XYChart.new(root, {
           panX: true,
@@ -120,6 +128,10 @@ export default function IvaBook() {
           wheelX: "panX",
           wheelY: "zoomX",
           pinchZoomX: true,
+          background: mode === 'dark' ? am5.Rectangle.new(root, {
+            fill: am5.color("#1e1e1e"),
+            fillOpacity: 1
+          }) : undefined
         })
       );
 
@@ -138,16 +150,49 @@ export default function IvaBook() {
       const xAxis = chart.xAxes.push(
         am5xy.CategoryAxis.new(root, {
           categoryField: "fecha",
-          renderer: am5xy.AxisRendererX.new(root, {}),
-          tooltip: am5.Tooltip.new(root, {}),
+          renderer: am5xy.AxisRendererX.new(root, {
+            minGridDistance: 30,
+            cellStartLocation: 0.1,
+            cellEndLocation: 0.9
+          }),
+          tooltip: am5.Tooltip.new(root, {
+            themeTags: ["axis"],
+            animationDuration: 200
+          })
         })
       );
 
+      if (mode === 'dark') {
+        xAxis.get("renderer").labels.template.setAll({
+          fill: am5.color("#ffffff")
+        });
+      }
+
       const yAxis = chart.yAxes.push(
         am5xy.ValueAxis.new(root, {
-          renderer: am5xy.AxisRendererY.new(root, {}),
+          renderer: am5xy.AxisRendererY.new(root, {
+            minGridDistance: 30
+          })
         })
       );
+
+      if (mode === 'dark') {
+        yAxis.get("renderer").labels.template.setAll({
+          fill: am5.color("#ffffff")
+        });
+      }
+
+      // Set axis colors for dark mode
+      if (mode === 'dark') {
+        xAxis.get("renderer").grid.template.setAll({
+          stroke: am5.color("#444444"),
+          strokeOpacity: 0.5
+        });
+        yAxis.get("renderer").grid.template.setAll({
+          stroke: am5.color("#444444"),
+          strokeOpacity: 0.5
+        });
+      }
 
       // Create series based on view type
       if (viewType === 'ambos' || viewType === 'ventas') {
@@ -159,13 +204,29 @@ export default function IvaBook() {
             valueYField: "total_iva_ventas",
             categoryXField: "fecha",
             tooltip: am5.Tooltip.new(root, {
-              labelText: "Ventas: {valueY}",
+              labelText: "Ventas: ${valueY}",
+              getFillFromSprite: false,
+              autoTextColor: false,
+              background: am5.Rectangle.new(root, {
+                fill: mode === 'dark' ? am5.color("#2d2d2d") : am5.color("#ffffff"),
+                stroke: mode === 'dark' ? am5.color("#666666") : am5.color("#000000"),
+              })
             }),
           })
         );
         ventasSeries.columns.template.setAll({
-          fill: am5.color(0x0066cc),
-          strokeWidth: 0,
+          cornerRadiusTL: 3,
+          cornerRadiusTR: 3,
+          cornerRadiusBL: 0,
+          cornerRadiusBR: 0,
+          fill: mode === 'dark' ? am5.color("#5c8ee6") : am5.color("#0066cc"),
+          strokeOpacity: 0,
+          width: am5.percent(70)
+        });
+
+        // Add hover state
+        ventasSeries.columns.template.states.create("hover", {
+          fill: mode === 'dark' ? am5.color("#7ba7ea") : am5.color("#0052a3"),
         });
       }
 
@@ -178,13 +239,29 @@ export default function IvaBook() {
             valueYField: "total_iva_compras",
             categoryXField: "fecha",
             tooltip: am5.Tooltip.new(root, {
-              labelText: "Compras: {valueY}",
+              labelText: "Compras: ${valueY}",
+              getFillFromSprite: false,
+              autoTextColor: false,
+              background: am5.Rectangle.new(root, {
+                fill: mode === 'dark' ? am5.color("#2d2d2d") : am5.color("#ffffff"),
+                stroke: mode === 'dark' ? am5.color("#666666") : am5.color("#000000"),
+              })
             }),
           })
         );
         comprasSeries.columns.template.setAll({
-          fill: am5.color(0xff6666),
-          strokeWidth: 0,
+          cornerRadiusTL: 3,
+          cornerRadiusTR: 3,
+          cornerRadiusBL: 0,
+          cornerRadiusBR: 0,
+          fill: mode === 'dark' ? am5.color("#e67373") : am5.color("#ff6666"),
+          strokeOpacity: 0,
+          width: am5.percent(70)
+        });
+
+        // Add hover state
+        comprasSeries.columns.template.states.create("hover", {
+          fill: mode === 'dark' ? am5.color("#eb8c8c") : am5.color("#ff4d4d"),
         });
       }
 
@@ -194,8 +271,12 @@ export default function IvaBook() {
         series.data.setAll(chartData);
       });
 
-      // Add legend
-      const legend = chart.children.push(am5.Legend.new(root, {}));
+      // Add legend with dark mode support
+      const legend = chart.children.push(am5.Legend.new(root, {
+        centerX: am5.percent(50),
+        x: am5.percent(50),
+        fill: mode === 'dark' ? am5.color("#ffffff") : am5.color("#000000"),
+      }));
       legend.data.setAll(chart.series.values);
 
       // Make stuff animate on load
@@ -205,7 +286,7 @@ export default function IvaBook() {
         root.dispose();
       };
     }
-  }, [chartData, viewType]);
+  }, [chartData, viewType, mode]);
 
   const handleExecute = async () => {
     if (!startDate || !endDate) {

@@ -8,23 +8,21 @@ import {
   Select,
   MenuItem,
   Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
   Alert,
   CircularProgress,
+  Tooltip,
+  IconButton
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import SearchIcon from '@mui/icons-material/Search';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import Title from '@/components/Title/Title';
+import { DataTable } from '@/components/tables/DataTable';
 import ClienteService from '@/services/clienteService';
 import { Dayjs } from 'dayjs';
+import { retencionesColumns } from './config/tableColumns';
 
 interface Row {
   id: string | number;
@@ -42,16 +40,6 @@ interface Empresa {
   cuit: string;
   proviene: string;
 }
-
-const formatCurrency = (value: any): string => {
-  if (value === null || value === undefined) return '$0,00';
-  const numericValue = typeof value === 'string' ? parseFloat(value) : value;
-  if (isNaN(numericValue)) return '$0,00';
-  return new Intl.NumberFormat('es-AR', {
-    style: 'currency',
-    currency: 'ARS',
-  }).format(numericValue);
-};
 
 const Retenciones = () => {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
@@ -101,7 +89,6 @@ const Retenciones = () => {
     setSuccess(false);
 
     try {
-      let responseData;
       const params = {
         fecha_desde: startDate.format('YYYY-MM-DD'),
         fecha_hasta: endDate.format('YYYY-MM-DD'),
@@ -109,9 +96,15 @@ const Retenciones = () => {
       };
 
       const response = await ClienteService.getRetenciones(params);
-      responseData = response.data;
+      const responseData = response.data;
 
-      setRows(responseData || []);
+      // Asegurarse de que cada fila tenga un ID único
+      const rowsWithIds = responseData.map((row: Row, index: number) => ({
+        ...row,
+        id: row.id || `retention-${index}`
+      }));
+
+      setRows(rowsWithIds);
       if (!responseData || responseData.length === 0) {
         setError('No se encontraron datos para los criterios seleccionados');
       } else {
@@ -187,16 +180,16 @@ const Retenciones = () => {
             </LocalizationProvider>
           </Grid>
 
-          <Grid item xs={12} sm={3}>
-            <Button
-              variant="contained"
-              onClick={handleSearch}
-              disabled={loading}
-              startIcon={loading ? <CircularProgress size={20} /> : <SearchIcon />}
-              fullWidth
-            >
-              Buscar
-            </Button>
+          <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Tooltip title="Buscar">
+              <IconButton
+                onClick={handleSearch}
+                disabled={loading}
+                sx={{ height: 'fit-content' }}
+              >
+                {loading ? <CircularProgress size={24} /> : <PlayArrowIcon color="primary" />}
+              </IconButton>
+            </Tooltip>
           </Grid>
         </Grid>
       </Paper>
@@ -213,50 +206,16 @@ const Retenciones = () => {
         </Alert>
       )}
 
-      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-        <TableContainer sx={{ maxHeight: 440 }}>
-          <Table stickyHeader aria-label="sticky table">
-            <TableHead>
-              <TableRow>
-                <TableCell>Fecha</TableCell>
-                <TableCell>Nro de Comprobante</TableCell>
-                <TableCell>Condición IVA</TableCell>
-                <TableCell>Razón Social</TableCell>
-                <TableCell>CUIT</TableCell>
-                <TableCell align="right">Importe</TableCell>
-                <TableCell align="right">Importe Total</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row) => (
-                  <TableRow hover key={row.id}>
-                    <TableCell>{row.fecha}</TableCell>
-                    <TableCell>{row.comprobante}</TableCell>
-                    <TableCell>{row.condicion_iva}</TableCell>
-                    <TableCell>{row.razon_social}</TableCell>
-                    <TableCell>{row.cuit}</TableCell>
-                    <TableCell align="right">{formatCurrency(row.importe)}</TableCell>
-                    <TableCell align="right">
-                      {formatCurrency(row.importe_total)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[10, 25, 100]}
-          component="div"
-          count={rows.length}
-          rowsPerPage={rowsPerPage}
+      {rows.length > 0 && (
+        <DataTable
+          columns={retencionesColumns}
+          rows={rows}
           page={page}
+          rowsPerPage={rowsPerPage}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
-          labelRowsPerPage="Filas por página"
         />
-      </Paper>
+      )}
     </Box>
   );
 };

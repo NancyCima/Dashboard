@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useMemo, ReactNode } from 'react';
 import { ThemeProvider as MUIThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
+import { lightModeConfig } from '@/styles/theme/lightMode';
+import { darkModeConfig } from '@/styles/theme/darkMode';
 
 type ThemeContextType = {
   toggleTheme: () => void;
@@ -26,39 +28,7 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   };
 
   const theme = useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode,
-          ...(mode === 'light'
-            ? {
-                // Light mode
-                primary: {
-                  main: '#1976d2',
-                },
-                secondary: {
-                  main: '#dc004e',
-                },
-                background: {
-                  default: '#f5f5f5',
-                  paper: '#ffffff',
-                },
-              }
-            : {
-                // Dark mode
-                primary: {
-                  main: '#90caf9',
-                },
-                secondary: {
-                  main: '#f48fb1',
-                },
-                background: {
-                  default: '#303030',
-                  paper: '#424242',
-                },
-              }),
-        },
-      }),
+    () => createTheme(mode === 'light' ? lightModeConfig : darkModeConfig),
     [mode]
   );
 
