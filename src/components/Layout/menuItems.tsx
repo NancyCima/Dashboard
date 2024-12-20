@@ -36,6 +36,7 @@ export const menuItems: MenuItem[] = [
       { text: 'Subdiario IVA Ventas', path: '/reportes/subdiario-iva-ventas' },
       { text: 'Subdiario IVA Compras', path: '/reportes/subdiario-iva-compras' },
       { text: 'Percepciones ARBA', path: '/reportes/percepciones-arba' },
+      { text: 'Percepciones AGIP', path: '/reportes/percepciones-agip' },
       { text: 'Retenciones de Venta', path: '/reportes/retenciones-venta' },
       { text: 'Consulta Unificada', path: '/reportes/consulta-unificada' },
     ],

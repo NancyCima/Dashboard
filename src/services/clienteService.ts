@@ -146,6 +146,11 @@ class ClienteService {
     return response;
   }
 
+  async getPercepcionesAgipVs(params: { fecha_desde: string; fecha_hasta: string; nombre_empresa: string }): Promise<any> {
+    const response = await api.post('/vs/percepciones-agip', params);
+    return response;
+  }
+
   async getSubdiarioIvaVentasVs(params: { fecha_desde: string; fecha_hasta: string; nombre_empresa: string }): Promise<any> {
     const response = await api.post('/vs/subdiario-iva-ventas', params);
     return response;

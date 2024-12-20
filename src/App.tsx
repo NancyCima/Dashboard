@@ -8,6 +8,7 @@ import Percepciones from '@/pages/Perceptions/Percepciones';
 import PercepcionesArba from '@/pages/Perceptions/PercepcionesArba';
 import PercepcionesAgip from '@/pages/Perceptions/PercepcionesAgip';
 import PercepcionesArbaVs from './pages/Reports/PercepcionesArbaVs';
+import PercepcionesAgipVs from './pages/Reports/PercepcionesAgipVs';
 import IvaVentasDetailVs from './pages/Reports/IvaVentasDetailVs';
 import IvaComprasDetailVs from './pages/Reports/IvaComprasDetailVs';
 import RetencionesVentasVs from './pages/Reports/RetencionesVentasVs';
@@ -41,6 +42,7 @@ function App() {
               </Route>
               <Route path="reportes">
                 <Route path="percepciones-arba" element={<PercepcionesArbaVs />} />
+                <Route path="percepciones-agip" element={<PercepcionesAgipVs />} />
                 <Route path="subdiario-iva-ventas" element={<IvaVentasDetailVs />} />
                 <Route path="subdiario-iva-compras" element={<IvaComprasDetailVs />} />
                 <Route path="retenciones-venta" element={<RetencionesVentasVs />} />
