@@ -17,9 +17,6 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import ReceiptIcon from '@mui/icons-material/Receipt';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -27,50 +24,13 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { menuItems, MenuItem } from './menuItems';
 
 const drawerWidth = 240;
 
-interface MenuItem {
-  text: string;
-  icon: JSX.Element;
-  path?: string;
-  subItems?: SubMenuItem[];
-}
-
-interface SubMenuItem {
-  text: string;
-  path: string;
-}
-
-const menuItems: MenuItem[] = [
-  {
-    text: 'Dashboard',
-    icon: <DashboardIcon />,
-    path: '/dashboard',
-  },
-  {
-    text: 'Libro IVA',
-    icon: <ShoppingCartIcon />,
-    subItems: [
-      { text: 'Libro IVA Gráfico', path: '/ventas/libro-iva' },
-      { text: 'Libro IVA Detalle', path: '/ventas/libro-iva-detalle' },
-    ],
-  },
-  {
-    text: 'Retenciones',
-    icon: <ReceiptIcon />,
-    path: '/ventas/retenciones',
-  },
-  {
-    text: 'Percepciones',
-    icon: <ReceiptIcon />,
-    path: '/ventas/percepciones',
-  },
-];
-
 const Layout = () => {
   const [open, setOpen] = useState(true);
-  const [salesOpen, setSalesOpen] = useState(false);
+  const [expandedMenus, setExpandedMenus] = useState<{ [key: string]: boolean }>({});
   const navigate = useNavigate();
   const { logout, user } = useAuth();
   const theme = useTheme();
@@ -82,8 +42,11 @@ const Layout = () => {
   const handleMenuItemClick = (item: MenuItem) => {
     if (item.path) {
       navigate(item.path);
-    } else if (item.text === 'Libro IVA') {
-      setSalesOpen(!salesOpen);
+    } else if (item.subItems) {
+      setExpandedMenus(prev => ({
+        ...prev,
+        [item.text]: !prev[item.text]
+      }));
     }
   };
 
@@ -260,20 +223,12 @@ const Layout = () => {
                 <ListItemIcon>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.text} />
                 {item.subItems && (
-                  <>
-                    {(item.text === 'Libro IVA' && salesOpen) ? (
-                      <ExpandLess />
-                    ) : (
-                      <ExpandMore />
-                    )}
-                  </>
+                  expandedMenus[item.text] ? <ExpandLess /> : <ExpandMore />
                 )}
               </ListItemButton>
               {item.subItems && (
                 <Collapse
-                  in={
-                    (item.text === 'Libro IVA' && salesOpen)
-                  }
+                  in={expandedMenus[item.text]}
                   timeout="auto"
                   unmountOnExit
                 >

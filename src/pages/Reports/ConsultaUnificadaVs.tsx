@@ -3,35 +3,31 @@ import {
   Box,
   Paper,
   Grid,
+  IconButton,
+  Tooltip,
+  Alert,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  Alert,
   CircularProgress,
-  Tooltip,
-  IconButton
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import dayjs, { Dayjs } from 'dayjs';
+import 'dayjs/locale/es';
 import Title from '@/components/Title/Title';
-import { DataTable } from '@/components/tables/DataTable';
 import ClienteService from '@/services/clienteService';
-import { Dayjs } from 'dayjs';
-import { percepcionesColumns } from './config/tableColumns';
 
-interface Row {
-  id: string | number;
-  fecha: string;
-  comprobante: string;
-  condicion_iva: string;
-  razon_social: string;
-  cuit: string;
-  importe: number;
-  importe_total: number;
-}
+dayjs.locale('es');
 
 interface Empresa {
   nombre: string;
@@ -39,14 +35,37 @@ interface Empresa {
   proviene: string;
 }
 
-const Percepciones = () => {
+interface ConsultaUnificada {
+  ventas_df: number;
+  neto_gravado: number;
+  percep_iibb_ba: number;
+  percep_iibb_caba: number;
+  compras_cf: number;
+  perc_iva: number;
+  perc_iibb_caba: number;
+  perc_iibb_ba: number;
+  percepciones_agip: number;
+  retenciones_agip: number;
+  iibb_21: number;
+  retenciones_iva_caba: number;
+  retenciones_iva_pcia: number;
+  retenciones_iva_otras: number;
+}
+
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('es-AR', {
+    style: 'currency',
+    currency: 'ARS',
+    minimumFractionDigits: 2
+  }).format(value);
+};
+
+const ConsultaUnificadaVs = () => {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [selectedEmpresa, setSelectedEmpresa] = useState<string>('');
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
-  const [rows, setRows] = useState<Row[]>([]);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [data, setData] = useState<ConsultaUnificada | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -76,7 +95,7 @@ const Percepciones = () => {
       return;
     }
 
-    const empresaSeleccionada = empresas.find(emp => emp.cuit === selectedEmpresa);
+    const empresaSeleccionada = empresas.find(emp => emp.nombre === selectedEmpresa);
     if (!empresaSeleccionada) {
       setError('No se encontró la empresa seleccionada');
       return;
@@ -88,47 +107,45 @@ const Percepciones = () => {
 
     try {
       const params = {
+        nombre_empresa: empresaSeleccionada.nombre,
         fecha_desde: startDate.format('YYYY-MM-DD'),
-        fecha_hasta: endDate.format('YYYY-MM-DD'),
-        cuit: empresaSeleccionada.cuit
+        fecha_hasta: endDate.format('YYYY-MM-DD')
       };
 
-      const response = await ClienteService.getPerceptions(params);
+      const response = await ClienteService.getConsultaUnificadaVs(params);
       const responseData = response.data;
 
-      // Asegurarse de que cada fila tenga un ID único
-      const rowsWithIds = responseData.map((row: Row, index: number) => ({
-        ...row,
-        id: row.id || `perception-${index}`
-      }));
-
-      setRows(rowsWithIds);
-      if (!responseData || responseData.length === 0) {
-        setError('No se encontraron datos para los criterios seleccionados');
-      } else {
-        setSuccess(true);
-      }
+      setData(responseData);
+      setSuccess(true);
     } catch (error) {
       console.error('Error fetching data:', error);
       setError('Error al obtener los datos');
-      setRows([]);
+      setData(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChangePage = (_: unknown, newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
+  const consultaUnificadaColumns = [
+    { id: 'ventas_df', label: 'Ventas DF', width: 130 },
+    { id: 'neto_gravado', label: 'Neto Gravado', width: 130 },
+    { id: 'percep_iibb_ba', label: 'Percep IIBB BA', width: 130 },
+    { id: 'percep_iibb_caba', label: 'Percep IIBB CABA', width: 130 },
+    { id: 'compras_cf', label: 'Compras CF', width: 130 },
+    { id: 'perc_iva', label: 'PERC IVA', width: 130 },
+    { id: 'perc_iibb_caba', label: 'PERC IIBB CABA(-22)', width: 150 },
+    { id: 'perc_iibb_ba', label: 'PERC IIBB BA(-23)', width: 150 },
+    { id: 'percepciones_agip', label: 'Percepciones AGIP', width: 130 },
+    { id: 'retenciones_agip', label: 'Retenciones AGIP', width: 130 },
+    { id: 'iibb_21', label: 'IIBB(21)', width: 130 },
+    { id: 'retenciones_iva_caba', label: 'Retenciones IVA CABA', width: 150 },
+    { id: 'retenciones_iva_pcia', label: 'Retenciones IVA PCIA', width: 150 },
+    { id: 'retenciones_iva_otras', label: 'Retenciones IVA Otras', width: 150 }
+  ];
 
   return (
     <Box sx={{ flexGrow: 1, p: 3 }}>
-      <Title>Percepciones</Title>
+      <Title>Consulta Unificada</Title>
       <Paper sx={{ p: 2, mb: 2 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={4}>
@@ -141,9 +158,9 @@ const Percepciones = () => {
                 onChange={(e) => setSelectedEmpresa(e.target.value)}
               >
                 {empresas
-                  .filter((empresa) => empresa.proviene === "Contabilium")
+                  .filter((empresa) => empresa.proviene === "Sistema VS")
                   .map((empresa) => (
-                    <MenuItem key={empresa.cuit} value={empresa.cuit}>
+                    <MenuItem key={empresa.nombre} value={empresa.nombre}>
                       {empresa.nombre}
                     </MenuItem>
                   ))}
@@ -202,18 +219,39 @@ const Percepciones = () => {
         </Alert>
       )}
 
-      {rows.length > 0 && (
-        <DataTable
-          columns={percepcionesColumns}
-          rows={rows}
-          page={page}
-          rowsPerPage={rowsPerPage}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
+      {data && (
+        <TableContainer component={Paper} sx={{ mt: 2, overflowX: 'auto' }}>
+          <Table stickyHeader>
+            <TableHead>
+              <TableRow>
+                {consultaUnificadaColumns.map((column) => (
+                  <TableCell
+                    key={column.id}
+                    style={{ width: column.width }}
+                    align="right"
+                  >
+                    {column.label}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow>
+                {consultaUnificadaColumns.map((column) => (
+                  <TableCell
+                    key={column.id}
+                    align="right"
+                  >
+                    {formatCurrency(data[column.id as keyof ConsultaUnificada])}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
     </Box>
   );
 };
 
-export default Percepciones;
+export default ConsultaUnificadaVs;

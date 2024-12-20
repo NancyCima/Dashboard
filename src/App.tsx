@@ -5,6 +5,13 @@ import IvaBook from '@/pages/Sales/IvaBook';
 import IvaBookDetail from '@/pages/Sales/IvaBookDetail';
 import Retenciones from '@/pages/Retentions/Retenciones';
 import Percepciones from '@/pages/Perceptions/Percepciones';
+import PercepcionesArba from '@/pages/Perceptions/PercepcionesArba';
+import PercepcionesAgip from '@/pages/Perceptions/PercepcionesAgip';
+import PercepcionesArbaVs from './pages/Reports/PercepcionesArbaVs';
+import IvaVentasDetailVs from './pages/Reports/IvaVentasDetailVs';
+import IvaComprasDetailVs from './pages/Reports/IvaComprasDetailVs';
+import RetencionesVentasVs from './pages/Reports/RetencionesVentasVs';
+import ConsultaUnificadaVs from './pages/Reports/ConsultaUnificadaVs';
 import { Login } from '@/pages/Login/Login';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
@@ -29,6 +36,15 @@ function App() {
                 <Route path="libro-iva-detalle" element={<IvaBookDetail />} />
                 <Route path="retenciones" element={<Retenciones />} />
                 <Route path="percepciones" element={<Percepciones />} />
+                <Route path="percepciones-arba" element={<PercepcionesArba />} />
+                <Route path="percepciones-agip" element={<PercepcionesAgip />} />
+              </Route>
+              <Route path="reportes">
+                <Route path="percepciones-arba" element={<PercepcionesArbaVs />} />
+                <Route path="subdiario-iva-ventas" element={<IvaVentasDetailVs />} />
+                <Route path="subdiario-iva-compras" element={<IvaComprasDetailVs />} />
+                <Route path="retenciones-venta" element={<RetencionesVentasVs />} />
+                <Route path="consulta-unificada" element={<ConsultaUnificadaVs />} />
               </Route>
             </Route>
           </Routes>

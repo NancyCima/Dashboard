@@ -14,9 +14,7 @@ interface RetencionesPercepcionesParams {
 }
 
 interface IvaResponse {
-  // Aquí puedes definir la estructura de la respuesta
-  // cuando tengas el formato exacto que devuelve el backend
-  [key: string]: any;
+  data: any[];
 }
 
 interface Empresa {
@@ -115,6 +113,57 @@ class ClienteService {
       console.error('Error al obtener percepciones:', error);
       throw error;
     }
+  }
+
+  async getPerceptionsArba(params: RetencionesPercepcionesParams): Promise<IvaResponse> {
+    try {
+      const response = await api.post<IvaResponse>(
+        `${this.BASE_URL}/iva-percepciones-arba`,
+        params
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener percepciones ARBA:', error);
+      throw error;
+    }
+  }
+
+  async getPerceptionsAgip(params: RetencionesPercepcionesParams): Promise<IvaResponse> {
+    try {
+      const response = await api.post<IvaResponse>(
+        `${this.BASE_URL}/iva-percepciones-agip`,
+        params
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error al obtener percepciones AGIP:', error);
+      throw error;
+    }
+  }
+
+  async getPercepcionesArbaVs(params: { fecha_desde: string; fecha_hasta: string; nombre_empresa: string }): Promise<any> {
+    const response = await api.post('/vs/percepciones-arba', params);
+    return response;
+  }
+
+  async getSubdiarioIvaVentasVs(params: { fecha_desde: string; fecha_hasta: string; nombre_empresa: string }): Promise<any> {
+    const response = await api.post('/vs/subdiario-iva-ventas', params);
+    return response;
+  }
+
+  async getSubdiarioIvaComprasVs(params: { fecha_desde: string; fecha_hasta: string; nombre_empresa: string }): Promise<any> {
+    const response = await api.post('/vs/subdiario-iva-compras', params);
+    return response;
+  }
+
+  async getRetencionesVentasVs(params: { fecha_desde: string; fecha_hasta: string; nombre_empresa: string }): Promise<any> {
+    const response = await api.post('/vs/retenciones-ventas', params);
+    return response;
+  }
+
+  async getConsultaUnificadaVs(params: { fecha_desde: string; fecha_hasta: string; nombre_empresa: string }): Promise<any> {
+    const response = await api.post('/vs/consulta-unificada', params);
+    return response;
   }
 }
 

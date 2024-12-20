@@ -3,35 +3,26 @@ import {
   Box,
   Paper,
   Grid,
+  IconButton,
+  Tooltip,
+  Alert,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  Alert,
   CircularProgress,
-  Tooltip,
-  IconButton
 } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import dayjs, { Dayjs } from 'dayjs';
+import 'dayjs/locale/es';
 import Title from '@/components/Title/Title';
-import { DataTable } from '@/components/tables/DataTable';
 import ClienteService from '@/services/clienteService';
-import { Dayjs } from 'dayjs';
-import { retencionesColumns } from './config/tableColumns';
+import { DataTable } from '@/components/tables/DataTable';
 
-interface Row {
-  id: string | number;
-  fecha: string;
-  comprobante: string;
-  condicion_iva: string;
-  razon_social: string;
-  cuit: string;
-  importe: number;
-  importe_total: number;
-}
+dayjs.locale('es');
 
 interface Empresa {
   nombre: string;
@@ -39,7 +30,50 @@ interface Empresa {
   proviene: string;
 }
 
-const Retenciones = () => {
+interface Row {
+  id?: string;
+  retenc_perc: number;
+  fecha_ret: string;
+  fecha: string;
+  tipo: string;
+  sucu: number;
+  numero: number;
+  sucu_recibo: number;
+  numero_recibo: number;
+  total: number;
+  cuit: number;
+  situ: number;
+  razon_social: string;
+  iva: number;
+  neto: number;
+  iibb: number;
+  porcentaje_iibb: number;
+  sucu_constancia: number;
+  numero_constancia: number;
+}
+
+const percepcionesColumns = [
+  { id: 'retenc_perc', label: 'Retenc/Percep', width: 130 },
+  { id: 'fecha_ret', label: 'Fecha Ret.', width: 130 },
+  { id: 'fecha', label: 'Fecha', width: 130 },
+  { id: 'tipo', label: 'Tipo', width: 100 },
+  { id: 'sucu', label: 'Suc', width: 100 },
+  { id: 'numero', label: 'Número', width: 100 },
+  { id: 'sucu_recibo', label: 'Suc Recibo', width: 100 },
+  { id: 'numero_recibo', label: 'Número Recibo', width: 130 },
+  { id: 'total', label: 'Total', width: 130 },
+  { id: 'cuit', label: 'Cuit', width: 130 },
+  { id: 'situ', label: 'Situ', width: 100 },
+  { id: 'razon_social', label: 'Razón Social', width: 200 },
+  { id: 'iva', label: 'IVA', width: 130 },
+  { id: 'neto', label: 'Neto', width: 130 },
+  { id: 'iibb', label: 'IIBB', width: 130 },
+  { id: 'porcentaje_iibb', label: '%IIBB', width: 100 },
+  { id: 'sucu_constancia', label: 'Suc Constancia', width: 130 },
+  { id: 'numero_constancia', label: 'Número Constancia', width: 150 },
+];
+
+const PercepcionesArbaVs = () => {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [selectedEmpresa, setSelectedEmpresa] = useState<string>('');
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
@@ -76,7 +110,7 @@ const Retenciones = () => {
       return;
     }
 
-    const empresaSeleccionada = empresas.find(emp => emp.cuit === selectedEmpresa);
+    const empresaSeleccionada = empresas.find(emp => emp.nombre === selectedEmpresa);
     if (!empresaSeleccionada) {
       setError('No se encontró la empresa seleccionada');
       return;
@@ -90,16 +124,16 @@ const Retenciones = () => {
       const params = {
         fecha_desde: startDate.format('YYYY-MM-DD'),
         fecha_hasta: endDate.format('YYYY-MM-DD'),
-        cuit: empresaSeleccionada.cuit
+        nombre_empresa: empresaSeleccionada.nombre
       };
 
-      const response = await ClienteService.getRetenciones(params);
+      const response = await ClienteService.getPercepcionesArbaVs(params);
       const responseData = response.data;
 
       // Asegurarse de que cada fila tenga un ID único
       const rowsWithIds = responseData.map((row: Row, index: number) => ({
         ...row,
-        id: row.id || `retention-${index}`
+        id: row.id || `perception-arba-vs-${index}`
       }));
 
       setRows(rowsWithIds);
@@ -127,29 +161,29 @@ const Retenciones = () => {
   };
 
   return (
-    <Box>
+    <Box sx={{ flexGrow: 1, p: 3 }}>
+      <Title>Percepciones ARBA</Title>
       <Paper sx={{ p: 2, mb: 2 }}>
-        <Title>Retenciones</Title>
-        <Grid container spacing={2} alignItems="center" sx={{ mt: 2 }}>
-          <Grid item xs={12} sm={3}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Empresa</InputLabel>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} sm={4}>
+            <FormControl fullWidth>
+              <InputLabel id="empresa-label">Empresa</InputLabel>
               <Select
+                labelId="empresa-label"
                 value={selectedEmpresa}
                 label="Empresa"
                 onChange={(e) => setSelectedEmpresa(e.target.value)}
               >
                 {empresas
-                  .filter((empresa) => empresa.proviene === "Contabilium")
+                  .filter((empresa) => empresa.proviene === "Sistema VS")
                   .map((empresa) => (
-                    <MenuItem key={empresa.cuit} value={empresa.cuit}>
+                    <MenuItem key={empresa.nombre} value={empresa.nombre}>
                       {empresa.nombre}
                     </MenuItem>
                   ))}
               </Select>
             </FormControl>
           </Grid>
-
           <Grid item xs={12} sm={3}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
@@ -158,12 +192,11 @@ const Retenciones = () => {
                 onChange={(newValue) => setStartDate(newValue)}
                 format="DD/MM/YYYY"
                 slotProps={{
-                  textField: { size: 'small', fullWidth: true },
+                  textField: { fullWidth: true },
                 }}
               />
             </LocalizationProvider>
           </Grid>
-
           <Grid item xs={12} sm={3}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
@@ -172,13 +205,12 @@ const Retenciones = () => {
                 onChange={(newValue) => setEndDate(newValue)}
                 format="DD/MM/YYYY"
                 slotProps={{
-                  textField: { size: 'small', fullWidth: true },
+                  textField: { fullWidth: true },
                 }}
               />
             </LocalizationProvider>
           </Grid>
-
-          <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Grid item xs={12} sm={2} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Tooltip title="Buscar">
               <IconButton
                 onClick={handleSearch}
@@ -206,7 +238,7 @@ const Retenciones = () => {
 
       {rows.length > 0 && (
         <DataTable
-          columns={retencionesColumns}
+          columns={percepcionesColumns}
           rows={rows}
           page={page}
           rowsPerPage={rowsPerPage}
@@ -218,4 +250,4 @@ const Retenciones = () => {
   );
 };
 
-export default Retenciones;
+export default PercepcionesArbaVs;

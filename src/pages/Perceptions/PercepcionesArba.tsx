@@ -20,7 +20,7 @@ import Title from '@/components/Title/Title';
 import { DataTable } from '@/components/tables/DataTable';
 import ClienteService from '@/services/clienteService';
 import { Dayjs } from 'dayjs';
-import { retencionesColumns } from './config/tableColumns';
+import { percepcionesColumns } from './config/tableColumns';
 
 interface Row {
   id: string | number;
@@ -39,7 +39,7 @@ interface Empresa {
   proviene: string;
 }
 
-const Retenciones = () => {
+const PercepcionesArba = () => {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [selectedEmpresa, setSelectedEmpresa] = useState<string>('');
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
@@ -93,13 +93,13 @@ const Retenciones = () => {
         cuit: empresaSeleccionada.cuit
       };
 
-      const response = await ClienteService.getRetenciones(params);
+      const response = await ClienteService.getPerceptionsArba(params);
       const responseData = response.data;
 
       // Asegurarse de que cada fila tenga un ID único
       const rowsWithIds = responseData.map((row: Row, index: number) => ({
         ...row,
-        id: row.id || `retention-${index}`
+        id: row.id || `perception-arba-${index}`
       }));
 
       setRows(rowsWithIds);
@@ -127,14 +127,15 @@ const Retenciones = () => {
   };
 
   return (
-    <Box>
+    <Box sx={{ flexGrow: 1, p: 3 }}>
+      <Title>Percepciones ARBA</Title>
       <Paper sx={{ p: 2, mb: 2 }}>
-        <Title>Retenciones</Title>
-        <Grid container spacing={2} alignItems="center" sx={{ mt: 2 }}>
-          <Grid item xs={12} sm={3}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Empresa</InputLabel>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} sm={4}>
+            <FormControl fullWidth>
+              <InputLabel id="empresa-label">Empresa</InputLabel>
               <Select
+                labelId="empresa-label"
                 value={selectedEmpresa}
                 label="Empresa"
                 onChange={(e) => setSelectedEmpresa(e.target.value)}
@@ -149,7 +150,6 @@ const Retenciones = () => {
               </Select>
             </FormControl>
           </Grid>
-
           <Grid item xs={12} sm={3}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
@@ -158,12 +158,11 @@ const Retenciones = () => {
                 onChange={(newValue) => setStartDate(newValue)}
                 format="DD/MM/YYYY"
                 slotProps={{
-                  textField: { size: 'small', fullWidth: true },
+                  textField: { fullWidth: true },
                 }}
               />
             </LocalizationProvider>
           </Grid>
-
           <Grid item xs={12} sm={3}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
@@ -172,13 +171,12 @@ const Retenciones = () => {
                 onChange={(newValue) => setEndDate(newValue)}
                 format="DD/MM/YYYY"
                 slotProps={{
-                  textField: { size: 'small', fullWidth: true },
+                  textField: { fullWidth: true },
                 }}
               />
             </LocalizationProvider>
           </Grid>
-
-          <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Grid item xs={12} sm={2} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Tooltip title="Buscar">
               <IconButton
                 onClick={handleSearch}
@@ -206,7 +204,7 @@ const Retenciones = () => {
 
       {rows.length > 0 && (
         <DataTable
-          columns={retencionesColumns}
+          columns={percepcionesColumns}
           rows={rows}
           page={page}
           rowsPerPage={rowsPerPage}
@@ -218,4 +216,4 @@ const Retenciones = () => {
   );
 };
 
-export default Retenciones;
+export default PercepcionesArba;
