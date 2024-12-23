@@ -2,6 +2,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import AssessmentIcon from '@mui/icons-material/Assessment';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 
 export interface MenuItem {
   text: string;
@@ -53,6 +54,14 @@ export const menuItems: MenuItem[] = [
       { text: 'Percepciones', path: '/ventas/percepciones' },
       { text: 'Percepciones ARBA', path: '/ventas/percepciones-arba' },
       { text: 'Percepciones AGIP', path: '/ventas/percepciones-agip' },
+    ],
+  },
+  {
+    text: 'Posiciones',
+    icon: <AccountBalanceIcon />,
+    subItems: [
+      { text: 'Posiciones IVA', path: '/posiciones/iva' },
+      { text: 'Posiciones IIBB', path: '/posiciones/iibb' },
     ],
   }
 ];

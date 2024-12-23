@@ -25,6 +25,8 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { menuItems, MenuItem } from './menuItems';
+import asapBlanco from '@/assets/logo-blanco.png';
+import asapAzul from '@/assets/logo.png';
 
 const drawerWidth = 240;
 
@@ -66,7 +68,7 @@ const Layout = () => {
         sx={{
           backgroundColor: theme.mode === 'dark' ? "black" : 'white',
           color: theme.mode === 'dark' ? '#FFFFFF' : 'text.primary',
-          borderBottom: theme.mode === 'dark' ? '2px solid ##424242' : '2px solid #2461B3',
+          borderBottom: theme.mode === 'dark' ? '2px solid #424242' : '2px solid #2461B3',
           boxShadow: 'none',
           zIndex: (theme) => theme.zIndex.drawer + 1,
           transition: (theme) =>
@@ -197,12 +199,13 @@ const Layout = () => {
             Alemar Data Analytics
           </Typography>
           <img
-            src={theme.mode === 'dark' ? "/assets/logos/asap_blanco.png" : "/assets/logos/asap_azul.png"}
+            src={theme.mode === 'dark' ? asapBlanco : asapAzul}
             alt="ASAP Logo"
             style={{
-              width: open ? '80%' : '40px',
+              width: open ? '160px' : '40px',
               height: 'auto',
-              transition: 'width 0.2s ease-in-out'
+              transition: 'width 0.2s ease-in-out',
+              objectFit: 'contain'
             }}
           />
         </Box>

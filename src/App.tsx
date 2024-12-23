@@ -13,6 +13,8 @@ import IvaVentasDetailVs from './pages/Reports/IvaVentasDetailVs';
 import IvaComprasDetailVs from './pages/Reports/IvaComprasDetailVs';
 import RetencionesVentasVs from './pages/Reports/RetencionesVentasVs';
 import ConsultaUnificadaVs from './pages/Reports/ConsultaUnificadaVs';
+import PosicionesIVA from './pages/Positions/PosicionesIVA';
+import PosicionesIIBB from './pages/Positions/PosicionesIIBB';
 import { Login } from '@/pages/Login/Login';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
@@ -47,6 +49,10 @@ function App() {
                 <Route path="subdiario-iva-compras" element={<IvaComprasDetailVs />} />
                 <Route path="retenciones-venta" element={<RetencionesVentasVs />} />
                 <Route path="consulta-unificada" element={<ConsultaUnificadaVs />} />
+              </Route>
+              <Route path="posiciones">
+                <Route path="iva" element={<PosicionesIVA />} />
+                <Route path="iibb" element={<PosicionesIIBB />} />
               </Route>
             </Route>
           </Routes>
