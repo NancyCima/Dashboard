@@ -1,4 +1,5 @@
 export interface IVAData {
+  id?: number;
   concepto: string;
   import: number;
   distrimar: number;

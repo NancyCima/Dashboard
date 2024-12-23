@@ -21,9 +21,10 @@ interface IVATableProps {
   mainData: IVAData[];
   deductionsData: IVAData[];
   onDataChange: (data: IVAData[]) => void;
+  selectedPeriod?: string;
 }
 
-export const IVATable = ({ mainData, deductionsData, onDataChange }: IVATableProps) => {
+export const IVATable = ({ mainData, deductionsData, onDataChange, selectedPeriod }: IVATableProps) => {
   const { mode } = useTheme();
   const colors = tableColors[mode];
   
@@ -32,13 +33,12 @@ export const IVATable = ({ mainData, deductionsData, onDataChange }: IVATablePro
     setConfirmDialogOpen,
     handleEdit,
     handleEditConfirm,
-    editField
-  } = useIvaEditing(mainData, onDataChange);
+  } = useIvaEditing(mainData, onDataChange, selectedPeriod);
 
   const calculateTotal = (row: IVAData) => {
-    return Object.entries(row)
+    return (Object.entries(row) as [keyof IVAData, string | number][])
       .filter(([key]) => key !== 'concepto')
-      .reduce((sum, [, value]) => sum + (value || 0), 0);
+      .reduce((sum, [, value]) => sum + (typeof value === 'number' ? value : 0), 0);
   };
 
   const renderCell = (row: IVAData, field: keyof IVAData, index: number) => {
