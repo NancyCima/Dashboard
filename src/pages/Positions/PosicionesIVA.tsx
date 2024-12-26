@@ -44,7 +44,9 @@ const PosicionesIVA = () => {
               junimar: 0,
               import: 0,
               gondola: 0,
-              otros: 0
+              otros: 0,
+              aladmar: 0,
+              aftermarket: 0
             };
             
             // Actualizar valores solo para las empresas que tengan datos en el período
