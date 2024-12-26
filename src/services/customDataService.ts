@@ -31,7 +31,11 @@ export interface UpdateCustomDataRequest {
 export const customDataService = {
   async consultar(params: CustomDataParams): Promise<CustomDataResponse[]> {
     try {
-      const response = await api.post('/custom-data/consultar', params);
+      // Modificamos la consulta para filtrar exactamente por el período
+      const response = await api.post('/custom-data/consultar', {
+        ...params,
+        exact_match: true // Agregamos un flag para indicar que queremos coincidencia exacta
+      });
       return response.data;
     } catch (error: any) {
       if (error.response?.status === 404) {
@@ -40,9 +44,13 @@ export const customDataService = {
       throw error;
     }
   },
+
   async crear(data: CreateCustomDataRequest): Promise<CustomDataResponse> {
     try {
-      const response = await api.post('/custom-data', data);
+      const response = await api.post('/custom-data', {
+        ...data,
+        periodo: data.desde.substring(0, 7) // Agregamos el período como YYYY-MM
+      });
       return response.data;
     } catch (error: any) {
       throw new Error('Error al crear el dato personalizado: ' + error.message);
@@ -55,14 +63,6 @@ export const customDataService = {
       return response.data;
     } catch (error: any) {
       throw new Error('Error al actualizar el dato personalizado: ' + error.message);
-    }
-  },
-
-  async eliminar(id: number): Promise<void> {
-    try {
-      await api.delete(`/custom-data/${id}`);
-    } catch (error: any) {
-      throw new Error('Error al eliminar el dato personalizado: ' + error.message);
     }
   }
 };

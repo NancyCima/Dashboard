@@ -4,7 +4,7 @@ import { customDataService } from '@/services/customDataService';
 import dayjs from 'dayjs';
 
 export const useIvaEditing = (
-  mainData: IVAData[], 
+  periodData: IVAData[], 
   onDataChange: (data: IVAData[]) => void,
   selectedPeriod?: string
 ) => {
@@ -13,40 +13,39 @@ export const useIvaEditing = (
     index: number;
     field: keyof IVAData;
     value: number;
-    isNew?: boolean;
   } | null>(null);
 
   const handleEditConfirm = async () => {
-    if (!pendingEdit) return;
+    if (!pendingEdit || !selectedPeriod) return;
 
     try {
       const { index, field, value } = pendingEdit;
-      const row = mainData[index];
+      const row = periodData[index];
       
       if (row.concepto === 'Despachos CF') {
         const startDate = dayjs(selectedPeriod).startOf('month').format('YYYY-MM-DD');
         const endDate = dayjs(selectedPeriod).endOf('month').format('YYYY-MM-DD');
         
-        if (!row.id) {
-          // Create new custom data
-          await customDataService.crear({
+        if (row.id) {
+          await customDataService.actualizar({
+            id: row.id,
+            tipo_dato: 'Despachos CF',
+            valor: value
+          });
+        } else {
+          const newRecord = await customDataService.crear({
             tipo_dato: 'Despachos CF',
             desde: startDate,
             hasta: endDate,
             empresa: String(field),
             valor: value
           });
-        } else {
-          // Update existing custom data
-          await customDataService.actualizar({
-            id: row.id,
-            tipo_dato: 'Despachos CF',
-            valor: value
-          });
+          
+          row.id = newRecord.id;
         }
       }
 
-      const newData = [...mainData];
+      const newData = [...periodData];
       newData[index] = {
         ...newData[index],
         [field]: value
