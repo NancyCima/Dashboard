@@ -3,6 +3,7 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 
 export interface MenuItem {
   text: string;
@@ -63,5 +64,10 @@ export const menuItems: MenuItem[] = [
       { text: 'Posiciones IVA', path: '/posiciones/iva' },
       { text: 'Posiciones IIBB', path: '/posiciones/iibb' },
     ],
+  },
+  {
+    text: 'Cuentas Corrientes',
+    icon: <AccountBalanceWalletIcon />,
+    path: '/cuenta-corriente',
   }
 ];

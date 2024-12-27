@@ -96,7 +96,6 @@ const Retenciones = () => {
       const response = await ClienteService.getRetenciones(params);
       const responseData = response.data;
 
-      // Asegurarse de que cada fila tenga un ID único
       const rowsWithIds = responseData.map((row: Row, index: number) => ({
         ...row,
         id: row.id || `retention-${index}`
@@ -127,14 +126,15 @@ const Retenciones = () => {
   };
 
   return (
-    <Box>
+    <Box sx={{ flexGrow: 1, p: 3 }}>
+      <Title>Retenciones</Title>
       <Paper sx={{ p: 2, mb: 2 }}>
-        <Title>Retenciones</Title>
-        <Grid container spacing={2} alignItems="center" sx={{ mt: 2 }}>
-          <Grid item xs={12} sm={3}>
-            <FormControl fullWidth size="small">
-              <InputLabel>Empresa</InputLabel>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} sm={4}>
+            <FormControl fullWidth>
+              <InputLabel id="empresa-label">Empresa</InputLabel>
               <Select
+                labelId="empresa-label"
                 value={selectedEmpresa}
                 label="Empresa"
                 onChange={(e) => setSelectedEmpresa(e.target.value)}
@@ -149,7 +149,6 @@ const Retenciones = () => {
               </Select>
             </FormControl>
           </Grid>
-
           <Grid item xs={12} sm={3}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
@@ -158,12 +157,11 @@ const Retenciones = () => {
                 onChange={(newValue) => setStartDate(newValue)}
                 format="DD/MM/YYYY"
                 slotProps={{
-                  textField: { size: 'small', fullWidth: true },
+                  textField: { fullWidth: true },
                 }}
               />
             </LocalizationProvider>
           </Grid>
-
           <Grid item xs={12} sm={3}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
@@ -172,13 +170,12 @@ const Retenciones = () => {
                 onChange={(newValue) => setEndDate(newValue)}
                 format="DD/MM/YYYY"
                 slotProps={{
-                  textField: { size: 'small', fullWidth: true },
+                  textField: { fullWidth: true },
                 }}
               />
             </LocalizationProvider>
           </Grid>
-
-          <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Grid item xs={12} sm={2} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Tooltip title="Buscar">
               <IconButton
                 onClick={handleSearch}

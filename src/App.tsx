@@ -15,6 +15,7 @@ import RetencionesVentasVs from './pages/Reports/RetencionesVentasVs';
 import ConsultaUnificadaVs from './pages/Reports/ConsultaUnificadaVs';
 import PosicionesIVA from './pages/Positions/PosicionesIVA';
 import PosicionesIIBB from './pages/Positions/PosicionesIIBB';
+import { CurrentAccount } from './pages/CurrentAccount/CurrentAccount';
 import { Login } from '@/pages/Login/Login';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
@@ -54,6 +55,7 @@ function App() {
                 <Route path="iva" element={<PosicionesIVA />} />
                 <Route path="iibb" element={<PosicionesIIBB />} />
               </Route>
+              <Route path="cuenta-corriente" element={<CurrentAccount />} />
             </Route>
           </Routes>
         </Router>

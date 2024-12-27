@@ -23,9 +23,7 @@ export const useIvaEditing = (
       const row = periodData[index];
       
       if (row.concepto === 'Despachos CF') {
-        const startDate = dayjs(selectedPeriod).startOf('month').format('YYYY-MM-DD');
-        const endDate = dayjs(selectedPeriod).endOf('month').format('YYYY-MM-DD');
-        
+        // Si el registro ya tiene un ID, actualizamos
         if (row.id) {
           await customDataService.actualizar({
             id: row.id,
@@ -33,6 +31,10 @@ export const useIvaEditing = (
             valor: value
           });
         } else {
+          // Si no tiene ID, es un nuevo registro
+          const startDate = dayjs(selectedPeriod).startOf('month').format('YYYY-MM-DD');
+          const endDate = dayjs(selectedPeriod).endOf('month').format('YYYY-MM-DD');
+          
           const newRecord = await customDataService.crear({
             tipo_dato: 'Despachos CF',
             desde: startDate,
@@ -43,14 +45,14 @@ export const useIvaEditing = (
           
           row.id = newRecord.id;
         }
-      }
 
-      const newData = [...periodData];
-      newData[index] = {
-        ...newData[index],
-        [field]: value
-      };
-      onDataChange(newData);
+        const newData = [...periodData];
+        newData[index] = {
+          ...newData[index],
+          [field]: value
+        };
+        onDataChange(newData);
+      }
     } catch (error) {
       console.error('Error al guardar el dato:', error);
     } finally {
