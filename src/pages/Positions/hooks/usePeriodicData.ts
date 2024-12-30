@@ -1,17 +1,25 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { customDataService } from '@/services/customDataService';
 import { IVAData } from '../types';
 import dayjs from 'dayjs';
+import { useDespachosCF } from './useDespachosCF';
 
 export const usePeriodicData = (mainData: IVAData[]) => {
   const [periodData, setPeriodData] = useState<IVAData[]>(mainData);
+  const { resetDespachosCF } = useDespachosCF();
+
+  const resetAllData = useCallback(() => {
+    const resetData = mainData.map(row => 
+      row.concepto === 'Despachos CF' ? resetDespachosCF(row) : { ...row }
+    );
+    setPeriodData(resetData);
+  }, [mainData]);
 
   const loadPeriodData = async (period: string | undefined) => {
-    // Resetear los datos de Despachos CF cuando no hay período seleccionado
-    if (!period) {
-      setPeriodData(getResetData(mainData));
-      return;
-    }
+    // Resetear datos inmediatamente al cambiar período
+    resetAllData();
+
+    if (!period) return;
 
     try {
       const startDate = dayjs(period).startOf('month').format('YYYY-MM-DD');
@@ -22,46 +30,33 @@ export const usePeriodicData = (mainData: IVAData[]) => {
         hasta: endDate
       });
 
-      const updatedData = mainData.map(row => {
-        if (row.concepto === 'Despachos CF') {
-          return createDespachosRow(row, customData);
-        }
-        return row;
-      });
-
-      setPeriodData(updatedData);
+      if (customData?.length > 0) {
+        const updatedData = mainData.map(row => {
+          if (row.concepto === 'Despachos CF') {
+            return updateDespachosCFData(row, customData);
+          }
+          return row;
+        });
+        setPeriodData(updatedData);
+      }
     } catch (error) {
       console.error('Error al cargar datos del período:', error);
-      setPeriodData(getResetData(mainData));
+      resetAllData();
     }
   };
 
   return {
     periodData,
-    loadPeriodData
+    setPeriodData,
+    loadPeriodData,
+    resetAllData
   };
 };
 
-// Funciones auxiliares
-const getResetData = (mainData: IVAData[]): IVAData[] => {
-  return mainData.map(row => ({
+const updateDespachosCFData = (row: IVAData, customData: any[]): IVAData => {
+  const baseRow = {
     ...row,
     id: undefined,
-    ...(row.concepto === 'Despachos CF' && {
-      import: 0,
-      distrimar: 0,
-      junimar: 0,
-      gondolaLed: 0,
-      warnesTelas: 0,
-      aladmar: 0,
-      aftermarket: 0
-    })
-  }));
-};
-
-const createDespachosRow = (row: IVAData, customData: any[]): IVAData => {
-  const resetRow = {
-    ...row,
     import: 0,
     distrimar: 0,
     junimar: 0,
@@ -80,5 +75,5 @@ const createDespachosRow = (row: IVAData, customData: any[]): IVAData => {
       }
     }
     return acc;
-  }, resetRow);
+  }, baseRow);
 };
